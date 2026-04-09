@@ -126,7 +126,12 @@
                 const payload = {
                     contents: [{
                         parts: [
-                            { text: `Return ONLY a standing full-body image of a person matching this physique: ${h}cm, ${w}kg. Use Image 1 for face reference. Wear the clothing from Image 2.` },
+                            { text: `Return ONLY an image. 
+                                    Generate a high-quality full-body photograph of a person standing in an office.
+                                    The person has a body build of ${h}cm height and ${w}kg weight.
+                                    The person must wear the exact outfit shown in Image 2.
+                                    Use Image 1 only as a general facial reference for the model. 
+                                    Ensure a professional standing pose from head to toe.` },
                             { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                             { inline_data: { mime_type: clothMimeType, data: clothBase64 } }
                         ]
