@@ -109,19 +109,19 @@
             const h = document.getElementById('height').value;
             if(!w || !h || !clothBase64) return alert("Lengkapi data!");
 
-            const selfieBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+            const selfieBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
             isFrozen = true;
             document.getElementById('freeze-overlay').classList.remove('hidden');
             resetBtn.classList.remove('hidden');
             loader.style.display = "block";
             captureBtn.disabled = true;
-            placeholderText.innerText = "AI SEDANG MENGANALISIS...";
+            placeholderText.innerText = "AI SEDANG BERPROSES...";
 
             try {
                 const payload = {
                     contents: [{
                         parts: [
-                            { text: `TASK: Fashion Visualization. Recreate the person in Image 1 wearing the exact garment from Image 2. Focus on realistic garment fitting. Physical: ${w}kg, ${h}cm. Maintain background. Return only the image.` },
+                            { text: `FASHION TASK: Replace the outfit of the person in IMAGE 1 with the exact garment from IMAGE 2. Adjust fitting for height ${h}cm and weight ${w}kg. Keep face and background identical.` },
                             { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                             { inline_data: { mime_type: clothMimeType, data: clothBase64 } }
                         ]
@@ -141,39 +141,38 @@
                 });
 
                 const data = await res.json();
-                console.log("FULL API RESPONSE:", data);
+                console.log("Full Response:", data);
 
                 if (data.error) throw new Error(data.error.message);
 
-                const candidates = data.candidates && data.candidates[0];
-                if (!candidates) {
+                const candidate = data.candidates && data.candidates[0];
+                if (!candidate) {
                     const blockReason = data.promptFeedback?.blockReason || "SAFETY_BLOCK";
-                    throw new Error(`Diblokir Sistem Keamanan: ${blockReason}`);
+                    throw new Error(`Diblokir: ${blockReason}`);
                 }
 
-                const parts = candidates.content.parts;
-                let foundImage = false;
-                let aiFeedbackText = "";
-
-                parts.forEach(part => {
-                    if (part.inline_data) {
-                        resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
+                let found = false;
+                candidate.content.parts.forEach(part => {
+                    // Cek 'inlineData' (D Besar) atau 'inline_data'
+                    const img = part.inlineData || part.inline_data;
+                    if (img) {
+                        resultImage.src = `data:${img.mimeType || img.mime_type};base64,${img.data}`;
                         resultImage.classList.remove('hidden');
                         placeholderText.classList.add('hidden');
-                        foundImage = true;
+                        found = true;
                     } else if (part.text) {
-                        aiFeedbackText = part.text;
+                        console.log("AI Text Message:", part.text);
                     }
                 });
 
-                if (!foundImage) throw new Error(aiFeedbackText || "AI menolak memberikan gambar.");
+                if (!found) throw new Error("Gagal mengambil data gambar dari AI.");
 
-                statusInfo.innerText = "SUCCESS";
+                statusInfo.innerText = "IMAGE GENERATED";
 
             } catch (err) {
-                console.error("ERROR:", err);
-                placeholderText.innerText = "HASIL TEKS AI: " + err.message;
-                statusInfo.innerText = "FAILED";
+                console.error(err);
+                placeholderText.innerText = "Error: " + err.message;
+                statusInfo.innerText = "PROCESS FAILED";
             } finally {
                 loader.style.display = "none";
                 captureBtn.disabled = false;
