@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-    // Pengaturan CORS agar frontend bisa akses backend ini
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
@@ -26,7 +25,6 @@ export default async function handler(req, res) {
     }
 }
 
-// Konfigurasi agar Vercel bisa menerima payload gambar besar
 export const config = {
     api: { bodyParser: { sizeLimit: '4mb' } },
 };

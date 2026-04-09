@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Visual Transformer v3.1</title>
+    <title>AI Fashion Transformer v3.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0d0d0d; color: #f0f0f0; font-family: 'Inter', sans-serif; }
@@ -18,8 +18,8 @@
 
     <div class="max-w-5xl w-full">
         <header class="mb-8 text-center">
-            <h1 class="text-3xl font-black italic uppercase tracking-tighter">Visual Transformer v3.1</h1>
-            <p class="text-zinc-500 text-[10px] font-mono mt-1">ENGINE: GEMINI-3.1-FLASH-IMAGE-PREVIEW</p>
+            <h1 class="text-3xl font-black italic uppercase tracking-tighter">Fashion Transformer v3.1</h1>
+            <p class="text-zinc-500 text-[10px] font-mono mt-1 italic">PROTOTYPE: IMAGE-TO-IMAGE GENERATION</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -31,9 +31,7 @@
 
                 <div class="space-y-2">
                     <input type="file" id="cloth-input" accept="image/*" class="hidden">
-                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition">
-                        Pilih Gambar Baju (PNG/JPG)
-                    </button>
+                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-[11px] font-bold uppercase hover:bg-zinc-800 transition">Pilih Gambar Baju</button>
                     <div id="file-status" class="text-[10px] text-center text-zinc-500 italic">No file selected</div>
                 </div>
 
@@ -46,10 +44,9 @@
                 </div>
 
                 <button id="capture-btn" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-zinc-300 transition shadow-xl">Generate Look</button>
-                
                 <div class="flex flex-col items-center gap-3">
                     <div class="loader" id="loader"></div>
-                    <div id="status-info" class="text-[10px] text-zinc-600 font-mono uppercase tracking-widest">System Ready</div>
+                    <div id="status-info" class="text-[10px] text-zinc-600 font-mono uppercase tracking-widest text-center">System Ready</div>
                 </div>
                 <button id="reset-btn" class="hidden w-full text-[10px] text-zinc-500 hover:text-white underline uppercase font-bold">Retake Photo</button>
             </div>
@@ -58,7 +55,7 @@
                 <h2 class="text-zinc-500 text-[10px] font-black uppercase mb-4 tracking-widest border-b border-zinc-800 pb-2">AI Output Preview</h2>
                 <div class="flex-grow flex flex-col items-center justify-center bg-black/30 rounded-2xl p-4 border border-zinc-800/50">
                     <img id="result-image" class="hidden shadow-2xl" alt="AI Generated">
-                    <div id="placeholder-text" class="text-zinc-700 text-xs font-mono uppercase text-center italic">Waiting for execution...</div>
+                    <div id="placeholder-text" class="text-zinc-700 text-xs font-mono uppercase text-center italic px-4">Waiting for execution...</div>
                 </div>
             </div>
         </div>
@@ -76,11 +73,8 @@
         const loader = document.getElementById('loader');
         const statusInfo = document.getElementById('status-info');
 
-        let isFrozen = false;
-        let clothBase64 = "";
-        let clothMimeType = "";
+        let isFrozen = false, clothBase64 = "", clothMimeType = "";
 
-        // Kamera Init
         async function init() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -100,12 +94,11 @@
             }
         }
 
-        // Handle File Baju (PNG/JPG)
         document.getElementById('cloth-input').onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
             clothMimeType = file.type;
-            document.getElementById('file-status').innerText = `${file.name} (${file.type})`;
+            document.getElementById('file-status').innerText = `${file.name}`;
             const reader = new FileReader();
             reader.onload = () => { clothBase64 = reader.result.split(',')[1]; };
             reader.readAsDataURL(file);
@@ -114,52 +107,31 @@
         async function runAI() {
             const w = document.getElementById('weight').value;
             const h = document.getElementById('height').value;
-            if(!w || !h || !clothBase64) return alert("Mohon lengkapi data fisik dan upload foto baju!");
+            if(!w || !h || !clothBase64) return alert("Lengkapi data!");
 
-            // OPTIMASI 1: Kecilkan resolusi foto selfie (canvas) menjadi 0.5 (setengah) 
-            // agar AI tidak terlalu fokus mendeteksi biometrik wajah biometrik yang spesifik.
             const selfieBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
-            
-            // UI State (Freeze/Loader)
             isFrozen = true;
             document.getElementById('freeze-overlay').classList.remove('hidden');
             resetBtn.classList.remove('hidden');
             loader.style.display = "block";
             captureBtn.disabled = true;
-            placeholderText.innerText = "MENGANALISIS DATA VISUALISASI FASHION...";
-            statusInfo.innerText = "SENDING SECURE PAYLOAD TO GEMINI...";
+            placeholderText.innerText = "AI SEDANG MENGANALISIS...";
 
             try {
                 const payload = {
                     contents: [{
                         parts: [
-                            // PROMPT BARU (PENTING):
-                            // Kita ubah subjek jadi "REALISTIC MANNEQUIN/AVATAR" dan 
-                            // sebutkan "FASHION VISUALIZATION" agar AI menganggap ini katalog, bukan deepfake.
-                            { text: `TASK: HIGH-QUALITY FASHION VISUALIZATION.
-                                    Take the clothing design from Image 2.
-                                    Generate a NEW PHOTOREALISTIC FASHION CATALOG IMAGE where a realistic mannequin/avatar with the exact same pose and background as Image 1 is wearing that clothing.
-                                    User Physical Specs: ${w}kg, ${h}cm.
-                                    Requirement: Keep the face identical. Return ONLY the final generated image.` 
-                            },
+                            { text: `TASK: Fashion Visualization. Recreate the person in Image 1 wearing the exact garment from Image 2. Focus on realistic garment fitting. Physical: ${w}kg, ${h}cm. Maintain background. Return only the image.` },
                             { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                             { inline_data: { mime_type: clothMimeType, data: clothBase64 } }
                         ]
                     }],
-                    // OPTIMASI 2 (HARUS ADA): 
-                    // Safety settings diset ke level paling longgar (BLOCK_NONE) untuk testing
                     safetySettings: [
                         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                    ],
-                    // OPTIMASI 3: Turunkan suhu (temperature) agar AI lebih taat aturan daripada kreatif
-                    generationConfig: {
-                        temperature: 0.5,
-                        topP: 1.0,
-                        candidateCount: 1
-                    }
+                    ]
                 };
 
                 const res = await fetch(PROXY_URL, {
@@ -169,41 +141,38 @@
                 });
 
                 const data = await res.json();
-                console.log("FULL DEBUG LOG:", data); // Klik objek parts di console (F12) kalau gagal
+                console.log("FULL API RESPONSE:", data);
 
                 if (data.error) throw new Error(data.error.message);
 
                 const candidates = data.candidates && data.candidates[0];
                 if (!candidates) {
-                    // Jika AI memblokir total tanpa teks balik
-                    throw new Error("Sistem Keamanan AI menolak men-generate gambar. Coba ambil foto selfie dari jarak setengah badan.");
+                    const blockReason = data.promptFeedback?.blockReason || "SAFETY_BLOCK";
+                    throw new Error(`Diblokir Sistem Keamanan: ${blockReason}`);
                 }
 
                 const parts = candidates.content.parts;
-                let found = false;
+                let foundImage = false;
+                let aiFeedbackText = "";
 
                 parts.forEach(part => {
                     if (part.inline_data) {
-                        // Gambar Berhasil Digenerate
                         resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
                         resultImage.classList.remove('hidden');
                         placeholderText.classList.add('hidden');
-                        found = true;
+                        foundImage = true;
+                    } else if (part.text) {
+                        aiFeedbackText = part.text;
                     }
                 });
 
-                if (!found) {
-                    // Jika AI mengembalikan teks alasan penolakan
-                    const aiText = parts.find(p => p.text)?.text || "AI memberikan teks tapi menolak memberikan gambar.";
-                    throw new Error(aiText);
-                }
+                if (!foundImage) throw new Error(aiFeedbackText || "AI menolak memberikan gambar.");
 
                 statusInfo.innerText = "SUCCESS";
 
             } catch (err) {
-                console.error("GENERATION ERROR Detail:", err);
-                // Tampilkan pesan teks dari AI ke layar agar kita tahu alasannya
-                placeholderText.innerText = "GAGAL: " + err.message.substring(0, 100);
+                console.error("ERROR:", err);
+                placeholderText.innerText = "HASIL TEKS AI: " + err.message;
                 statusInfo.innerText = "FAILED";
             } finally {
                 loader.style.display = "none";
