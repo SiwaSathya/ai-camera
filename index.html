@@ -3,81 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Virtual Try-On - Single File Deploy</title>
+    <title>AI Visual Transformer - 3.1 Preview</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #1a1a1a; color: #d1d1d1; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .gray-panel { background-color: #242424; border: 1px solid #333; }
-        .input-field { background: #2d2d2d; border: 1px solid #444; color: white; border-radius: 8px; padding: 10px; }
-        #video-canvas { border-radius: 12px; background: #000; width: 100%; max-width: 450px; transform: scaleX(-1); border: 2px solid #3a3a3a; }
-        .btn-primary { background-color: #4a4a4a; transition: 0.3s; }
-        .btn-primary:hover { background-color: #5a5a5a; box-shadow: 0 0 15px rgba(255,255,255,0.1); }
-        .loader { border: 3px solid #333; border-top: 3px solid #999; border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; display: none; }
+        body { background-color: #121212; color: #e0e0e0; font-family: 'Inter', sans-serif; }
+        .gray-panel { background-color: #1c1c1c; border: 1px solid #333; }
+        .input-field { background: #262626; border: 1px solid #444; color: white; border-radius: 8px; padding: 12px; }
+        #video-canvas { border-radius: 12px; background: #000; width: 100%; max-width: 450px; transform: scaleX(-1); border: 2px solid #444; }
+        .btn-primary { background-color: #3f3f46; transition: 0.3s; cursor: pointer; border: 1px solid #52525b; }
+        .btn-primary:hover { background-color: #52525b; border-color: #71717a; }
+        .loader { border: 3px solid #333; border-top: 3px solid #fff; border-radius: 50%; width: 28px; height: 28px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #cloth-preview { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; display: none; margin-top: 10px; border: 1px solid #444; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #1a1a1a; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        #cloth-preview { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; display: none; margin-top: 10px; border: 1px solid #444; }
     </style>
 </head>
-<body class="p-4 md:p-10 flex flex-col items-center">
+<body class="p-6 md:p-12 flex flex-col items-center">
 
     <div class="max-w-5xl w-full">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-100 tracking-tight">AI Visual Transformer</h1>
-            <p class="text-gray-500 text-sm">Deploy Ready: Pure Frontend Integration</p>
+        <header class="mb-10 text-center">
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">AI Fit Transformer</h1>
+            <p class="text-zinc-500 font-mono text-xs mt-2">Using: gemini-3.1-flash-image-preview</p>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="gray-panel p-6 rounded-2xl shadow-2xl space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div class="gray-panel p-8 rounded-3xl shadow-2xl space-y-6">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">1. Profil Fisik</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="number" id="weight" placeholder="Berat (kg)" class="input-field w-full outline-none focus:border-gray-500">
-                        <input type="number" id="height" placeholder="Tinggi (cm)" class="input-field w-full outline-none focus:border-gray-500">
+                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-3">Dimensi Fisik</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="number" id="weight" placeholder="Berat (kg)" class="input-field w-full outline-none focus:border-zinc-500">
+                        <input type="number" id="height" placeholder="Tinggi (cm)" class="input-field w-full outline-none focus:border-zinc-500">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">2. Referensi Pakaian</label>
+                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-3">Katalog Baju</label>
                     <input type="file" id="cloth-input" accept="image/*" class="hidden">
-                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm hover:bg-zinc-700 transition">Upload Foto Baju</button>
+                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm hover:bg-zinc-700 transition font-semibold">
+                        Pilih Gambar Pakaian
+                    </button>
                     <center><img id="cloth-preview"></center>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">3. Ambil Foto Wajah & Tubuh</label>
+                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-3">Visual Selfie</label>
                     <video id="webcam" autoplay playsinline class="hidden"></video>
                     <canvas id="video-canvas"></canvas>
                 </div>
 
-                <button id="capture-btn" class="btn-primary w-full py-4 rounded-xl font-bold text-white shadow-lg tracking-widest uppercase text-sm">Proses Perubahan AI</button>
+                <button id="capture-btn" class="btn-primary w-full py-4 rounded-2xl font-bold text-white shadow-xl tracking-widest text-sm">
+                    GENERATE LOOK
+                </button>
                 
-                <div class="flex flex-col items-center gap-2">
+                <div class="flex flex-col items-center gap-3">
                     <div class="loader" id="loader"></div>
-                    <div id="status-info" class="text-[10px] text-gray-500 font-mono"></div>
+                    <div id="status-info" class="text-[10px] text-zinc-600 font-mono text-center uppercase">Ready to Process</div>
                 </div>
             </div>
 
-            <div class="gray-panel p-6 rounded-2xl shadow-2xl flex flex-col min-h-[400px]">
-                <h2 class="text-gray-400 text-xs font-bold uppercase mb-4 tracking-widest border-b border-zinc-800 pb-2">Hasil Analisis Visual</h2>
-                <div class="flex-grow overflow-y-auto bg-[#1e1e1e] rounded-xl p-5 border border-zinc-800">
-                    <div id="ai-result-text" class="text-sm text-gray-400 leading-relaxed whitespace-pre-wrap italic">
-                        Input data dan foto terlebih dahulu...
+            <div class="gray-panel p-8 rounded-3xl shadow-2xl flex flex-col">
+                <h2 class="text-zinc-500 text-xs font-bold uppercase mb-6 tracking-widest border-b border-zinc-800 pb-3">AI Transformation Report</h2>
+                <div class="flex-grow overflow-y-auto bg-black/30 rounded-2xl p-6 border border-zinc-800/50">
+                    <div id="ai-result-text" class="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap font-light">
+                        Menunggu data input untuk memulai proses...
                     </div>
                 </div>
-                <p class="mt-4 text-[10px] text-gray-600 text-center">Identity Preservation System Active: Wajah tidak akan diubah.</p>
+                <div class="mt-6 p-4 bg-zinc-900/50 rounded-xl border border-zinc-800">
+                    <p class="text-[10px] text-zinc-500 leading-tight">
+                        <span class="text-zinc-300 font-bold">Catatan:</span> Model 3.1 Preview dioptimalkan untuk menjaga akurasi identitas wajah sambil melakukan manipulasi objek pakaian pada gambar.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        /**
-         * PENTING: Untuk deploy Vercel, pastikan API Key ini 
-         * memiliki kuota yang cukup di Google AI Studio.
-         */
         const API_KEY = "AIzaSyBL6s9TRBpKOyCJHgnAmis-dbCln_KABcw"; 
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        // Menggunakan model preview terbaru yang kamu berikan
+        const MODEL_NAME = "gemini-3.1-flash-image-preview";
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('video-canvas');
@@ -91,29 +94,23 @@
 
         let clothBase64 = "";
 
-        // Akses Kamera
-        async function startWebcam() {
+        async function initCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "user" } 
-                });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 video.srcObject = stream;
                 video.onloadedmetadata = () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    drawLoop();
+                    draw();
                 };
-            } catch (e) {
-                statusInfo.innerText = "Error Kamera: " + e.message;
-            }
+            } catch (e) { statusInfo.innerText = "Error: Akses kamera ditolak."; }
         }
 
-        function drawLoop() {
+        function draw() {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            requestAnimationFrame(drawLoop);
+            requestAnimationFrame(draw);
         }
 
-        // Handle Upload Baju
         clothInput.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -126,45 +123,39 @@
             reader.readAsDataURL(file);
         };
 
-        async function processTransformation() {
-            const weight = document.getElementById('weight').value;
-            const height = document.getElementById('height').value;
+        async function runAI() {
+            const w = document.getElementById('weight').value;
+            const h = document.getElementById('height').value;
 
-            if(!weight || !height || !clothBase64) {
-                alert("Lengkapi data fisik dan foto baju!");
+            if(!w || !h || !clothBase64) {
+                alert("Data fisik dan foto baju wajib diisi!");
                 return;
             }
 
             loader.style.display = "block";
             captureBtn.disabled = true;
-            statusInfo.innerText = "MENGHUBUNGKAN KE GEMINI API...";
-            aiResultText.innerText = "Sedang menganalisis wajah dan menyesuaikan pakaian...";
+            statusInfo.innerText = "Calling " + MODEL_NAME + "...";
+            aiResultText.innerText = "Menganalisis pose tubuh dan detail pakaian...";
 
             try {
-                // Ambil foto selfie saat tombol diklik
                 const selfieBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-
+                
                 const payload = {
                     contents: [{
                         parts: [
-                            { text: `CONTEXT: Virtual Try-On System. 
-                            USER DATA: Weight ${weight}kg, Height ${height}cm.
-                            INPUT: 
-                            1. Selfie Image (Person)
-                            2. Clothing Image (Target Item)
-                            
-                            TASK:
-                            Modify the body shape of the person in the selfie to match the provided weight/height. 
-                            Fit the clothing from the second image onto the modified body.
-                            
-                            STRICT RULES:
-                            - FACE IDENTITY: 100% same as selfie. Do not modify facial features.
-                            - CLOTHING: Must match the style and color of the clothing image.
-                            - RESPONSE: Describe the transformation result in professional detail.` },
+                            { text: `System Task: Virtual Dressing Room. 
+                            Physique: Weight ${w}kg, Height ${h}cm. 
+                            Action: Take the clothing from image 2 and apply it perfectly to the person in image 1. 
+                            Strict Command: Face identity must be 100% preserved. Adjust body proportions according to the weight/height provided. 
+                            Output: Detailed visual description of the resulting transformation.` },
                             { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                             { inline_data: { mime_type: "image/jpeg", data: clothBase64 } }
                         ]
-                    }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 1000
+                    }
                 };
 
                 const response = await fetch(API_URL, {
@@ -175,29 +166,30 @@
 
                 const data = await response.json();
 
-                if (data.error) throw new Error(data.error.message);
+                if (data.error) {
+                    throw new Error(`${data.error.status}: ${data.error.message}`);
+                }
 
                 if (data.candidates && data.candidates[0].content) {
-                    const result = data.candidates[0].content.parts[0].text;
-                    aiResultText.innerText = result;
-                    aiResultText.classList.remove('italic');
-                    statusInfo.innerText = "TRANSFORMASI BERHASIL";
+                    aiResultText.innerText = data.candidates[0].content.parts[0].text;
+                    statusInfo.innerText = "Success - Transformation Complete";
                 } else {
-                    aiResultText.innerText = "AI gagal memproses gambar. Pastikan foto wajah terlihat jelas.";
+                    aiResultText.innerText = "Maaf, AI tidak dapat memberikan hasil untuk gambar ini. Pastikan foto cukup terang.";
+                    statusInfo.innerText = "Response Empty";
                 }
 
             } catch (err) {
-                console.error(err);
-                aiResultText.innerHTML = `<span class="text-red-500 font-mono text-xs">ERR: ${err.message}</span>`;
-                statusInfo.innerText = "FAILED";
+                console.error("DEBUG:", err);
+                aiResultText.innerHTML = `<span class="text-red-500 font-mono text-xs">API Error: ${err.message}</span>`;
+                statusInfo.innerText = "Failed to Execute";
             } finally {
                 loader.style.display = "none";
                 captureBtn.disabled = false;
             }
         }
 
-        captureBtn.onclick = processTransformation;
-        startWebcam();
+        captureBtn.onclick = runAI;
+        initCamera();
     </script>
 </body>
 </html>
