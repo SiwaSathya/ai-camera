@@ -121,27 +121,23 @@
         async function generate() {
             const w = document.getElementById('weight').value;
             const h = document.getElementById('height').value;
-            if(!w || !h || !clothBase64) return alert("Please fill details and upload a photo!");
+            if(!w || !h || !clothBase64) return alert("Isi data dulu!");
 
             const selfieBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            
+            // UI State
             isFrozen = true;
             document.getElementById('freeze-overlay').classList.remove('hidden');
             resetBtn.classList.remove('hidden');
-
             loader.style.display = "block";
             captureBtn.disabled = true;
-            placeholderText.innerText = "GENERATING PIXELS...";
+            placeholderText.innerText = "DEBUGGING: Cek Console (F12)...";
 
             try {
-                // Sesuai dengan struktur baru yang kamu temukan
                 const payload = {
                     contents: [{
                         parts: [
-                            { text: `TASK: Image-to-Image Generation. 
-                                     Take the clothing from the second image and generate a new high-quality image of the person in the first image wearing that clothing.
-                                     User Physique: Weight ${w}kg, Height ${h}cm. 
-                                     Keep the face and person's identity identical to the first image.` 
-                            },
+                            { text: "TASK: GENERATE_IMAGE virtual try-on person in image 1 wearing clothes from image 2." },
                             { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                             { inline_data: { mime_type: clothMimeType, data: clothBase64 } }
                         ]
@@ -156,28 +152,38 @@
 
                 const data = await response.json();
 
-                if (data.error) throw new Error(data.error.message);
-                
-                const parts = data.candidates[0].content.parts;
-                let foundImage = false;
+                // --- BAGIAN DEBUG UTAMA ---
+                console.log("%c >>> FULL API RESPONSE <<< ", "background: #222; color: #bada55; font-size: 14px;");
+                console.dir(data); // Klik tanda panah di console untuk melihat isinya
 
-                parts.forEach(part => {
-                    if (part.inline_data) {
-                        resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
-                        resultImage.classList.remove('hidden');
-                        placeholderText.classList.add('hidden');
-                        foundImage = true;
-                    }
-                });
-
-                if (!foundImage) throw new Error("AI did not return an image part.");
-
-                statusInfo.innerText = "GENERATION SUCCESS";
+                if (data.candidates && data.candidates[0]) {
+                    console.log("Finish Reason:", data.candidates[0].finishReason);
+                    console.log("Safety Ratings:", data.candidates[0].safetyRatings);
+                    
+                    const parts = data.candidates[0].content.parts;
+                    console.log("Parts Received:", parts.length);
+                    
+                    parts.forEach((part, index) => {
+                        if (part.inline_data) {
+                            console.log(`Part ${index}: IMAGE FOUND! (MIME: ${part.inline_data.mime_type})`);
+                            resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
+                            resultImage.classList.remove('hidden');
+                            placeholderText.classList.add('hidden');
+                        } else if (part.text) {
+                            console.log(`Part ${index}: TEXT FOUND! ->`, part.text);
+                            placeholderText.innerText = "AI Response: " + part.text;
+                        }
+                    });
+                } else if (data.error) {
+                    console.error("API ERROR OBJECT:", data.error);
+                } else {
+                    console.warn("Response tidak memiliki candidates atau error. Cek network tab!");
+                }
+                // ---------------------------
 
             } catch (err) {
-                console.error(err);
-                placeholderText.innerText = "ERROR: " + err.message.toUpperCase();
-                statusInfo.innerText = "FAILED";
+                console.error("FETCH ERROR:", err);
+                placeholderText.innerText = "ERROR: Cek Console";
             } finally {
                 loader.style.display = "none";
                 captureBtn.disabled = false;
