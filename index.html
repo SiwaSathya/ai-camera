@@ -3,39 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Fit v3.1 - Image Generation</title>
+    <title>AI Visual Transformer v3.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0d0d0d; color: #f0f0f0; font-family: 'Inter', sans-serif; }
-        .gray-panel { background-color: #161616; border: 1px solid #2a2a2a; }
-        .input-field { background: #1f1f1f; border: 1px solid #333; color: white; border-radius: 12px; padding: 12px; }
-        #video-canvas, #result-image { border-radius: 20px; width: 100%; max-width: 480px; border: 1px solid #333; background: #000; }
+        .gray-panel { background-color: #161616; border: 1px solid #2a2a2a; border-radius: 2rem; }
+        #video-canvas, #result-image { border-radius: 1.5rem; width: 100%; max-width: 480px; background: #000; border: 1px solid #333; }
         #video-canvas { transform: scaleX(-1); }
-        .btn-primary { background: linear-gradient(to bottom, #444, #111); border: 1px solid #555; transition: 0.3s; cursor: pointer; }
-        .btn-primary:hover:not(:disabled) { border-color: #999; transform: scale(1.02); }
-        .loader { border: 3px solid #222; border-top: 3px solid #fff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; display: none; }
+        .loader { border: 3px solid #222; border-top: 3px solid #fff; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-4 md:p-10 flex flex-col items-center">
+<body class="p-6 md:p-10 flex flex-col items-center">
 
-    <div class="max-w-6xl w-full">
-        <header class="mb-10 text-center">
-            <h1 class="text-4xl font-black tracking-tighter text-white uppercase italic">Visual Transformer 3.1</h1>
-            <p class="text-zinc-600 font-mono text-[10px] mt-2 tracking-widest uppercase">Mode: Image-to-Image Generation (Multimodal)</p>
+    <div class="max-w-5xl w-full">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-black italic uppercase tracking-tighter">Visual Transformer v3.1</h1>
+            <p class="text-zinc-500 text-[10px] font-mono mt-1">ENGINE: GEMINI-3.1-FLASH-IMAGE-PREVIEW</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="gray-panel p-8 rounded-[2.5rem] shadow-2xl space-y-6">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="weight" placeholder="Berat (kg)" class="input-field w-full outline-none">
-                    <input type="number" id="height" placeholder="Tinggi (cm)" class="input-field w-full outline-none">
+            <div class="gray-panel p-6 shadow-2xl space-y-6">
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" id="weight" placeholder="Berat (kg)" class="bg-[#1f1f1f] p-3 rounded-xl outline-none text-sm border border-zinc-800">
+                    <input type="number" id="height" placeholder="Tinggi (cm)" class="bg-[#1f1f1f] p-3 rounded-xl outline-none text-sm border border-zinc-800">
                 </div>
 
-                <div class="space-y-3">
+                <div class="space-y-2">
                     <input type="file" id="cloth-input" accept="image/*" class="hidden">
-                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs font-bold hover:bg-zinc-800 transition uppercase tracking-widest">
-                        Pilih Baju (PNG/JPG/Any)
+                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-900 border border-zinc-700 rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-zinc-800 transition">
+                        Pilih Gambar Baju (PNG/JPG)
                     </button>
                     <div id="file-status" class="text-[10px] text-center text-zinc-500 italic">No file selected</div>
                 </div>
@@ -43,26 +40,25 @@
                 <div class="relative">
                     <video id="webcam" autoplay playsinline class="hidden"></video>
                     <canvas id="video-canvas"></canvas>
-                    <div id="freeze-overlay" class="hidden absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-2xl">
-                        <span class="text-white font-black text-xs tracking-widest border-2 border-white px-4 py-2 uppercase">Captured</span>
+                    <div id="freeze-overlay" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center rounded-[1.5rem]">
+                        <span class="border-2 border-white px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em]">Captured</span>
                     </div>
                 </div>
 
-                <button id="capture-btn" class="btn-primary w-full py-5 rounded-3xl font-black text-white shadow-2xl tracking-[0.2em] text-sm uppercase">Generate New Image</button>
+                <button id="capture-btn" class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-zinc-300 transition shadow-xl">Generate Look</button>
                 
-                <div class="flex flex-col items-center gap-4">
+                <div class="flex flex-col items-center gap-3">
                     <div class="loader" id="loader"></div>
                     <div id="status-info" class="text-[10px] text-zinc-600 font-mono uppercase tracking-widest">System Ready</div>
                 </div>
-
-                <button id="reset-btn" class="hidden w-full text-xs text-zinc-500 hover:text-white transition underline uppercase font-bold">Retake</button>
+                <button id="reset-btn" class="hidden w-full text-[10px] text-zinc-500 hover:text-white underline uppercase font-bold">Retake Photo</button>
             </div>
 
-            <div class="gray-panel p-8 rounded-[2.5rem] shadow-2xl flex flex-col">
-                <h2 class="text-zinc-500 text-[10px] font-black uppercase mb-6 tracking-widest border-b border-zinc-800 pb-4">Result (AI Image Output)</h2>
-                <div id="image-container" class="w-full flex-grow flex flex-col items-center justify-center bg-black/40 rounded-[2rem] p-6 border border-zinc-800/50 min-h-[400px]">
-                    <img id="result-image" class="hidden shadow-2xl" alt="AI Output">
-                    <div id="placeholder-text" class="text-zinc-700 text-xs font-mono uppercase text-center">Waiting for generation...</div>
+            <div class="gray-panel p-6 shadow-2xl flex flex-col">
+                <h2 class="text-zinc-500 text-[10px] font-black uppercase mb-4 tracking-widest border-b border-zinc-800 pb-2">AI Output Preview</h2>
+                <div class="flex-grow flex flex-col items-center justify-center bg-black/30 rounded-2xl p-4 border border-zinc-800/50">
+                    <img id="result-image" class="hidden shadow-2xl" alt="AI Generated">
+                    <div id="placeholder-text" class="text-zinc-700 text-xs font-mono uppercase text-center italic">Waiting for execution...</div>
                 </div>
             </div>
         </div>
@@ -70,7 +66,6 @@
 
     <script>
         const PROXY_URL = "/api/generate";
-
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('video-canvas');
         const ctx = canvas.getContext('2d');
@@ -81,109 +76,103 @@
         const loader = document.getElementById('loader');
         const statusInfo = document.getElementById('status-info');
 
-        let stream = null;
-        let clothBase64 = "";
-        let clothMimeType = "image/png"; // Default dinamis
         let isFrozen = false;
-        let animationId = null;
+        let clothBase64 = "";
+        let clothMimeType = "";
 
+        // Kamera Init
         async function init() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
                 video.onloadedmetadata = () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    tick();
+                    render();
                 };
-            } catch (e) { statusInfo.innerText = "CAMERA ERROR"; }
+            } catch (e) { statusInfo.innerText = "Camera Error: " + e.message; }
         }
 
-        function tick() {
+        function render() {
             if (!isFrozen) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                animationId = requestAnimationFrame(tick);
+                requestAnimationFrame(render);
             }
         }
 
-        // Handle Dynamic File Upload
+        // Handle File Baju (PNG/JPG)
         document.getElementById('cloth-input').onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            clothMimeType = file.type; // Otomatis mendeteksi PNG/JPG/WebP
-            document.getElementById('file-status').innerText = `${file.name} (${clothMimeType})`;
-            
+            clothMimeType = file.type;
+            document.getElementById('file-status').innerText = `${file.name} (${file.type})`;
             const reader = new FileReader();
             reader.onload = () => { clothBase64 = reader.result.split(',')[1]; };
             reader.readAsDataURL(file);
         };
 
-        async function generate() {
+        async function runAI() {
             const w = document.getElementById('weight').value;
             const h = document.getElementById('height').value;
-            if(!w || !h || !clothBase64) return alert("Isi data dulu!");
+            if(!w || !h || !clothBase64) return alert("Mohon lengkapi data fisik dan pilih gambar baju!");
 
             const selfieBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-            
-            // UI State
             isFrozen = true;
             document.getElementById('freeze-overlay').classList.remove('hidden');
             resetBtn.classList.remove('hidden');
             loader.style.display = "block";
             captureBtn.disabled = true;
-            placeholderText.innerText = "DEBUGGING: Cek Console (F12)...";
+            placeholderText.innerText = "PROSES GENERATE...";
+            statusInfo.innerText = "SENDING TO GEMINI...";
 
             try {
                 const payload = {
                     contents: [{
                         parts: [
-                            { text: "TASK: GENERATE_IMAGE virtual try-on person in image 1 wearing clothes from image 2." },
+                            { text: `TASK: GENERATE_IMAGE virtual try-on. Wear the clothing from image 2 onto the person in image 1. Profile: ${w}kg, ${h}cm. Keep face identical.` },
                             { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                             { inline_data: { mime_type: clothMimeType, data: clothBase64 } }
                         ]
                     }]
                 };
 
-                const response = await fetch(PROXY_URL, {
+                const res = await fetch(PROXY_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                const data = await response.json();
+                const data = await res.json();
+                console.log("FULL DEBUG RESPONSE:", data); // Intip semua data di console (F12)
 
-                // --- BAGIAN DEBUG UTAMA ---
-                console.log("%c >>> FULL API RESPONSE <<< ", "background: #222; color: #bada55; font-size: 14px;");
-                console.dir(data); // Klik tanda panah di console untuk melihat isinya
+                if (data.error) throw new Error(data.error.message);
 
-                if (data.candidates && data.candidates[0]) {
-                    console.log("Finish Reason:", data.candidates[0].finishReason);
-                    console.log("Safety Ratings:", data.candidates[0].safetyRatings);
-                    
-                    const parts = data.candidates[0].content.parts;
-                    console.log("Parts Received:", parts.length);
-                    
-                    parts.forEach((part, index) => {
-                        if (part.inline_data) {
-                            console.log(`Part ${index}: IMAGE FOUND! (MIME: ${part.inline_data.mime_type})`);
-                            resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
-                            resultImage.classList.remove('hidden');
-                            placeholderText.classList.add('hidden');
-                        } else if (part.text) {
-                            console.log(`Part ${index}: TEXT FOUND! ->`, part.text);
-                            placeholderText.innerText = "AI Response: " + part.text;
-                        }
-                    });
-                } else if (data.error) {
-                    console.error("API ERROR OBJECT:", data.error);
-                } else {
-                    console.warn("Response tidak memiliki candidates atau error. Cek network tab!");
+                const candidates = data.candidates && data.candidates[0];
+                if (!candidates) throw new Error("AI memblokir output (Safety Filter). Coba foto lain.");
+
+                const parts = candidates.content.parts;
+                let found = false;
+
+                parts.forEach(part => {
+                    if (part.inline_data) {
+                        resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
+                        resultImage.classList.remove('hidden');
+                        placeholderText.classList.add('hidden');
+                        found = true;
+                    }
+                });
+
+                if (!found) {
+                    const aiReason = parts.find(p => p.text)?.text || "AI menolak men-generate gambar.";
+                    throw new Error(aiReason);
                 }
-                // ---------------------------
+
+                statusInfo.innerText = "SUCCESS";
 
             } catch (err) {
-                console.error("FETCH ERROR:", err);
-                placeholderText.innerText = "ERROR: Cek Console";
+                console.error("GENERATION FAILED:", err);
+                placeholderText.innerText = "GAGAL: " + err.message;
+                statusInfo.innerText = "FAILED";
             } finally {
                 loader.style.display = "none";
                 captureBtn.disabled = false;
@@ -196,11 +185,11 @@
             resetBtn.classList.add('hidden');
             resultImage.classList.add('hidden');
             placeholderText.classList.remove('hidden');
-            placeholderText.innerText = "Waiting for generation...";
-            tick();
+            placeholderText.innerText = "Waiting for execution...";
+            render();
         };
 
-        captureBtn.onclick = generate;
+        captureBtn.onclick = runAI;
         init();
     </script>
 </body>
