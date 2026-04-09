@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Fit - Freeze Mode</title>
+    <title>AI Fit - Gemini 3 Preview</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #121212; color: #e0e0e0; font-family: 'Inter', sans-serif; }
@@ -21,8 +21,8 @@
 
     <div class="max-w-5xl w-full">
         <header class="mb-10 text-center">
-            <h1 class="text-3xl font-extrabold text-white">AI Visual Transformer</h1>
-            <p class="text-zinc-500 font-mono text-xs mt-2">Mode: Capture, Freeze & Process</p>
+            <h1 class="text-3xl font-extrabold text-white tracking-tighter">AI Visual Transformer 3.0</h1>
+            <p class="text-zinc-500 font-mono text-xs mt-2 uppercase">Model: gemini-3-flash-preview (Thinking Mode)</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -34,29 +34,28 @@
 
                 <div>
                     <input type="file" id="cloth-input" accept="image/*" class="hidden">
-                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm hover:bg-zinc-700 transition">Pilih Gambar Baju</button>
+                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm hover:bg-zinc-700 transition font-bold">PILIH BAJU</button>
                     <center><img id="cloth-preview"></center>
                 </div>
 
                 <div class="relative">
                     <video id="webcam" autoplay playsinline class="hidden"></video>
                     <canvas id="video-canvas"></canvas>
-                    <div id="freeze-overlay" class="hidden absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
-                        <span class="text-white font-bold text-xs tracking-widest uppercase">Image Captured</span>
+                    <div id="freeze-overlay" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
+                        <span class="text-white font-bold text-xs tracking-widest border border-white p-2">CAPTURED</span>
                     </div>
                 </div>
 
-                <button id="capture-btn" class="btn-primary w-full py-4 rounded-2xl font-bold text-white shadow-xl tracking-widest text-sm">PROSES SEKARANG</button>
+                <button id="capture-btn" class="btn-primary w-full py-4 rounded-2xl font-bold text-white shadow-xl tracking-widest text-sm uppercase">PROSES AI</button>
                 <center><div class="loader" id="loader"></div></center>
-                <div id="status-info" class="text-center text-[10px] text-zinc-600 font-mono uppercase"></div>
-                
-                <button id="reset-btn" class="hidden w-full text-[10px] text-zinc-500 hover:text-white transition underline">Ambil Ulang Foto</button>
+                <div id="status-info" class="text-center text-[10px] text-zinc-600 font-mono uppercase tracking-widest"></div>
+                <button id="reset-btn" class="hidden w-full text-[10px] text-zinc-500 hover:text-white transition underline mt-2">Ambil Ulang Foto</button>
             </div>
 
             <div class="gray-panel p-8 rounded-3xl shadow-2xl flex flex-col">
                 <h2 class="text-zinc-500 text-xs font-bold uppercase mb-6 tracking-widest border-b border-zinc-800 pb-3">AI Transformation Report</h2>
-                <div class="flex-grow overflow-y-auto bg-black/30 rounded-2xl p-6 border border-zinc-800/50 min-h-[300px]">
-                    <div id="ai-result-text" class="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">Menunggu data...</div>
+                <div class="flex-grow overflow-y-auto bg-black/40 rounded-2xl p-6 border border-zinc-800/50 min-h-[350px]">
+                    <div id="ai-result-text" class="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">Silakan lengkapi data...</div>
                 </div>
             </div>
         </div>
@@ -64,8 +63,9 @@
 
     <script>
         const API_KEY = "AIzaSyBL6s9TRBpKOyCJHgnAmis-dbCln_KABcw"; 
-        const MODEL_NAME = "gemini-3.1-flash-image-preview";
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+        const MODEL_ID = "gemini-3-flash-preview";
+        // Menggunakan streamGenerateContent agar sesuai dengan dokumentasimu
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:streamGenerateContent?key=${API_KEY}`;
 
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('video-canvas');
@@ -82,7 +82,6 @@
         let isFrozen = false;
         let animationId = null;
 
-        // Nyalakan Kamera
         async function startCamera() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
@@ -96,10 +95,9 @@
                     canvas.height = video.videoHeight;
                     draw();
                 };
-            } catch (e) { statusInfo.innerText = "Kamera Gagal."; }
+            } catch (e) { statusInfo.innerText = "Error Kamera."; }
         }
 
-        // Matikan Kamera
         function stopCamera() {
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
@@ -131,16 +129,15 @@
             const w = document.getElementById('weight').value;
             const h = document.getElementById('height').value;
 
-            if(!w || !h || !clothBase64) return alert("Lengkapi data!");
+            if(!w || !h || !clothBase64) return alert("Data tidak lengkap!");
 
-            // 1. Freeze & Stop Kamera
             const selfieBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
             stopCamera();
 
-            // 2. UI Loading
             loader.style.display = "block";
             captureBtn.disabled = true;
-            aiResultText.innerText = "Processing dengan Gemini 3.1...";
+            aiResultText.innerText = "Gemini sedang 'berpikir' (High Thinking Mode)...";
+            statusInfo.innerText = "Streaming Response...";
 
             try {
                 const response = await fetch(API_URL, {
@@ -148,30 +145,63 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{
+                            role: "user",
                             parts: [
-                                { text: `System: Virtual Try-On. User: ${w}kg, ${h}cm. Task: Apply cloth from image 2 to person in image 1. Face must be 100% same.` },
+                                { text: `Tugas: Virtual Try-On. User: Berat ${w}kg, Tinggi ${h}cm. Gunakan baju dari foto kedua ke orang di foto pertama. WAJAH HARUS IDENTIK.` },
                                 { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                                 { inline_data: { mime_type: "image/jpeg", data: clothBase64 } }
                             ]
-                        }]
+                        }],
+                        generationConfig: {
+                            thinkingConfig: {
+                                thinkingLevel: "HIGH"
+                            }
+                        }
                     })
                 });
 
-                const data = await response.json();
-
-                // 3. Handling Undefined (PENTING)
-                if (data.candidates && data.candidates.length > 0) {
-                    aiResultText.innerText = data.candidates[0].content.parts[0].text;
-                    statusInfo.innerText = "DONE";
-                } else if (data.error) {
-                    throw new Error(data.error.message);
-                } else {
-                    aiResultText.innerText = "Respons kosong dari AI. Coba lagi.";
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message || "Request Gagal");
                 }
 
+                // Menangani STREAMING response agar tidak undefined
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullText = "";
+                aiResultText.innerText = ""; // Kosongkan placeholder
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value, { stream: true });
+                    
+                    // Membersihkan karakter aneh dari stream JSON array
+                    try {
+                        const jsonChunks = chunk.split('\n').filter(line => line.trim() !== '');
+                        for (const line of jsonChunks) {
+                            const cleanLine = line.replace(/^\[|,|\]$/g, '');
+                            if (!cleanLine.trim()) continue;
+                            
+                            const parsed = JSON.parse(cleanLine);
+                            if (parsed.candidates && parsed.candidates[0].content) {
+                                const newText = parsed.candidates[0].content.parts[0].text;
+                                fullText += newText;
+                                aiResultText.innerText = fullText;
+                            }
+                        }
+                    } catch (e) {
+                        // Jika chunk terpotong di tengah JSON, kita abaikan dulu sampai chunk berikutnya masuk
+                    }
+                }
+
+                statusInfo.innerText = "BERHASIL";
+
             } catch (err) {
-                aiResultText.innerText = "Error: " + err.message;
                 console.error(err);
+                aiResultText.innerHTML = `<span class="text-red-500 font-mono text-xs">ERR: ${err.message}</span>`;
+                statusInfo.innerText = "GAGAL";
             } finally {
                 loader.style.display = "none";
                 captureBtn.disabled = false;
