@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Visual Transformer - 3.1 Preview</title>
+    <title>AI Fit - Freeze Mode</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #121212; color: #e0e0e0; font-family: 'Inter', sans-serif; }
@@ -11,66 +11,52 @@
         .input-field { background: #262626; border: 1px solid #444; color: white; border-radius: 8px; padding: 12px; }
         #video-canvas { border-radius: 12px; background: #000; width: 100%; max-width: 450px; transform: scaleX(-1); border: 2px solid #444; }
         .btn-primary { background-color: #3f3f46; transition: 0.3s; cursor: pointer; border: 1px solid #52525b; }
-        .btn-primary:hover { background-color: #52525b; border-color: #71717a; }
-        .loader { border: 3px solid #333; border-top: 3px solid #fff; border-radius: 50%; width: 28px; height: 28px; animation: spin 1s linear infinite; display: none; }
+        .btn-primary:hover { background-color: #52525b; }
+        .loader { border: 3px solid #333; border-top: 3px solid #fff; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #cloth-preview { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; display: none; margin-top: 10px; border: 1px solid #444; }
+        #cloth-preview { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; display: none; margin-top: 10px; border: 1px solid #444; }
     </style>
 </head>
 <body class="p-6 md:p-12 flex flex-col items-center">
 
     <div class="max-w-5xl w-full">
         <header class="mb-10 text-center">
-            <h1 class="text-3xl font-extrabold text-white tracking-tight">AI Fit Transformer</h1>
-            <p class="text-zinc-500 font-mono text-xs mt-2">Using: gemini-3.1-flash-image-preview</p>
+            <h1 class="text-3xl font-extrabold text-white">AI Visual Transformer</h1>
+            <p class="text-zinc-500 font-mono text-xs mt-2">Mode: Capture, Freeze & Process</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <div class="gray-panel p-8 rounded-3xl shadow-2xl space-y-6">
-                <div>
-                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-3">Dimensi Fisik</label>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="number" id="weight" placeholder="Berat (kg)" class="input-field w-full outline-none focus:border-zinc-500">
-                        <input type="number" id="height" placeholder="Tinggi (cm)" class="input-field w-full outline-none focus:border-zinc-500">
-                    </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" id="weight" placeholder="Berat (kg)" class="input-field w-full outline-none">
+                    <input type="number" id="height" placeholder="Tinggi (cm)" class="input-field w-full outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-3">Katalog Baju</label>
                     <input type="file" id="cloth-input" accept="image/*" class="hidden">
-                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm hover:bg-zinc-700 transition font-semibold">
-                        Pilih Gambar Pakaian
-                    </button>
+                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm hover:bg-zinc-700 transition">Pilih Gambar Baju</button>
                     <center><img id="cloth-preview"></center>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-zinc-500 uppercase mb-3">Visual Selfie</label>
+                <div class="relative">
                     <video id="webcam" autoplay playsinline class="hidden"></video>
                     <canvas id="video-canvas"></canvas>
+                    <div id="freeze-overlay" class="hidden absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
+                        <span class="text-white font-bold text-xs tracking-widest uppercase">Image Captured</span>
+                    </div>
                 </div>
 
-                <button id="capture-btn" class="btn-primary w-full py-4 rounded-2xl font-bold text-white shadow-xl tracking-widest text-sm">
-                    GENERATE LOOK
-                </button>
+                <button id="capture-btn" class="btn-primary w-full py-4 rounded-2xl font-bold text-white shadow-xl tracking-widest text-sm">PROSES SEKARANG</button>
+                <center><div class="loader" id="loader"></div></center>
+                <div id="status-info" class="text-center text-[10px] text-zinc-600 font-mono uppercase"></div>
                 
-                <div class="flex flex-col items-center gap-3">
-                    <div class="loader" id="loader"></div>
-                    <div id="status-info" class="text-[10px] text-zinc-600 font-mono text-center uppercase">Ready to Process</div>
-                </div>
+                <button id="reset-btn" class="hidden w-full text-[10px] text-zinc-500 hover:text-white transition underline">Ambil Ulang Foto</button>
             </div>
 
             <div class="gray-panel p-8 rounded-3xl shadow-2xl flex flex-col">
                 <h2 class="text-zinc-500 text-xs font-bold uppercase mb-6 tracking-widest border-b border-zinc-800 pb-3">AI Transformation Report</h2>
-                <div class="flex-grow overflow-y-auto bg-black/30 rounded-2xl p-6 border border-zinc-800/50">
-                    <div id="ai-result-text" class="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap font-light">
-                        Menunggu data input untuk memulai proses...
-                    </div>
-                </div>
-                <div class="mt-6 p-4 bg-zinc-900/50 rounded-xl border border-zinc-800">
-                    <p class="text-[10px] text-zinc-500 leading-tight">
-                        <span class="text-zinc-300 font-bold">Catatan:</span> Model 3.1 Preview dioptimalkan untuk menjaga akurasi identitas wajah sambil melakukan manipulasi objek pakaian pada gambar.
-                    </p>
+                <div class="flex-grow overflow-y-auto bg-black/30 rounded-2xl p-6 border border-zinc-800/50 min-h-[300px]">
+                    <div id="ai-result-text" class="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">Menunggu data...</div>
                 </div>
             </div>
         </div>
@@ -78,118 +64,123 @@
 
     <script>
         const API_KEY = "AIzaSyBL6s9TRBpKOyCJHgnAmis-dbCln_KABcw"; 
-        // Menggunakan model preview terbaru yang kamu berikan
         const MODEL_NAME = "gemini-3.1-flash-image-preview";
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
         const video = document.getElementById('webcam');
         const canvas = document.getElementById('video-canvas');
-        const clothInput = document.getElementById('cloth-input');
-        const clothPreview = document.getElementById('cloth-preview');
+        const ctx = canvas.getContext('2d');
         const captureBtn = document.getElementById('capture-btn');
-        const loader = document.getElementById('loader');
+        const resetBtn = document.getElementById('reset-btn');
+        const clothPreview = document.getElementById('cloth-preview');
         const aiResultText = document.getElementById('ai-result-text');
         const statusInfo = document.getElementById('status-info');
-        const ctx = canvas.getContext('2d');
+        const loader = document.getElementById('loader');
 
+        let stream = null;
         let clothBase64 = "";
+        let isFrozen = false;
+        let animationId = null;
 
-        async function initCamera() {
+        // Nyalakan Kamera
+        async function startCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 video.srcObject = stream;
+                isFrozen = false;
+                resetBtn.classList.add('hidden');
+                document.getElementById('freeze-overlay').classList.add('hidden');
+                
                 video.onloadedmetadata = () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     draw();
                 };
-            } catch (e) { statusInfo.innerText = "Error: Akses kamera ditolak."; }
+            } catch (e) { statusInfo.innerText = "Kamera Gagal."; }
+        }
+
+        // Matikan Kamera
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                cancelAnimationFrame(animationId);
+                isFrozen = true;
+                document.getElementById('freeze-overlay').classList.remove('hidden');
+                resetBtn.classList.remove('hidden');
+            }
         }
 
         function draw() {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            requestAnimationFrame(draw);
+            if (!isFrozen) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                animationId = requestAnimationFrame(draw);
+            }
         }
 
-        clothInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+        document.getElementById('cloth-input').onchange = (e) => {
             const reader = new FileReader();
             reader.onload = () => {
                 clothBase64 = reader.result.split(',')[1];
                 clothPreview.src = reader.result;
                 clothPreview.style.display = "block";
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(e.target.files[0]);
         };
 
-        async function runAI() {
+        async function processAI() {
             const w = document.getElementById('weight').value;
             const h = document.getElementById('height').value;
 
-            if(!w || !h || !clothBase64) {
-                alert("Data fisik dan foto baju wajib diisi!");
-                return;
-            }
+            if(!w || !h || !clothBase64) return alert("Lengkapi data!");
 
+            // 1. Freeze & Stop Kamera
+            const selfieBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            stopCamera();
+
+            // 2. UI Loading
             loader.style.display = "block";
             captureBtn.disabled = true;
-            statusInfo.innerText = "Calling " + MODEL_NAME + "...";
-            aiResultText.innerText = "Menganalisis pose tubuh dan detail pakaian...";
+            aiResultText.innerText = "Processing dengan Gemini 3.1...";
 
             try {
-                const selfieBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-                
-                const payload = {
-                    contents: [{
-                        parts: [
-                            { text: `System Task: Virtual Dressing Room. 
-                            Physique: Weight ${w}kg, Height ${h}cm. 
-                            Action: Take the clothing from image 2 and apply it perfectly to the person in image 1. 
-                            Strict Command: Face identity must be 100% preserved. Adjust body proportions according to the weight/height provided. 
-                            Output: Detailed visual description of the resulting transformation.` },
-                            { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
-                            { inline_data: { mime_type: "image/jpeg", data: clothBase64 } }
-                        ]
-                    }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 1000
-                    }
-                };
-
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: `System: Virtual Try-On. User: ${w}kg, ${h}cm. Task: Apply cloth from image 2 to person in image 1. Face must be 100% same.` },
+                                { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
+                                { inline_data: { mime_type: "image/jpeg", data: clothBase64 } }
+                            ]
+                        }]
+                    })
                 });
 
                 const data = await response.json();
 
-                if (data.error) {
-                    throw new Error(`${data.error.status}: ${data.error.message}`);
-                }
-
-                if (data.candidates && data.candidates[0].content) {
+                // 3. Handling Undefined (PENTING)
+                if (data.candidates && data.candidates.length > 0) {
                     aiResultText.innerText = data.candidates[0].content.parts[0].text;
-                    statusInfo.innerText = "Success - Transformation Complete";
+                    statusInfo.innerText = "DONE";
+                } else if (data.error) {
+                    throw new Error(data.error.message);
                 } else {
-                    aiResultText.innerText = "Maaf, AI tidak dapat memberikan hasil untuk gambar ini. Pastikan foto cukup terang.";
-                    statusInfo.innerText = "Response Empty";
+                    aiResultText.innerText = "Respons kosong dari AI. Coba lagi.";
                 }
 
             } catch (err) {
-                console.error("DEBUG:", err);
-                aiResultText.innerHTML = `<span class="text-red-500 font-mono text-xs">API Error: ${err.message}</span>`;
-                statusInfo.innerText = "Failed to Execute";
+                aiResultText.innerText = "Error: " + err.message;
+                console.error(err);
             } finally {
                 loader.style.display = "none";
                 captureBtn.disabled = false;
             }
         }
 
-        captureBtn.onclick = runAI;
-        initCamera();
+        resetBtn.onclick = startCamera;
+        captureBtn.onclick = processAI;
+        startCamera();
     </script>
 </body>
 </html>
