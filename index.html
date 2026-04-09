@@ -107,51 +107,41 @@
         async function runAI() {
             const w = document.getElementById('weight').value;
             const h = document.getElementById('height').value;
-            if(!w || !h || !clothBase64) return alert("Mohon lengkapi data fisik dan upload foto baju!");
+            if(!w || !h || !clothBase64) return alert("Bli, data fisik dan foto baju wajib diisi!");
 
-            // Ambil selfie dengan kualitas rendah untuk referensi wajah saja
-            const selfieBase64 = canvas.toDataURL('image/jpeg', 0.4).split(',')[1];
+            const selfieBase64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
             
-            // UI State
+            // UI Feedback
             isFrozen = true;
             document.getElementById('freeze-overlay').classList.remove('hidden');
-            resetBtn.classList.remove('hidden');
             loader.style.display = "block";
-            captureBtn.disabled = true;
-            placeholderText.innerText = "MENGHASILKAN GAMBAR BARU...";
-            statusInfo.innerText = "COMMUNICATING WITH GEMINI...";
+            placeholderText.innerText = "AI SEDANG MELUKIS POSE BERDIRI...";
 
             try {
                 const payload = {
                     contents: [{
                         parts: [
                             { 
-                                // PROMPT TOTAL BARU:
-                                // Kita tidak lagi menyuruh AI 'mengganti', tapi 'membuat ulang'.
-                                text: `TASK: FULL IMAGE GENERATION.
-                                    1. Analyze the face identity of the person in Image 1.
-                                    2. Analyze the clothing design from Image 2.
-                                    3. Generate a NEW HIGH-QUALITY PHOTOREALISTIC IMAGE of the SAME PERSON from Image 1.
-                                    Constraint 1 (Pose): The person MUST BE STANDING upright, fully facing the camera, hands in a natural position (like hands in pockets).
-                                    Constraint 2 (Outfit): The person MUST be wearing the exact clothing design from Image 2.
-                                    Constraint 3 (Physique): The person's body must match ${w}kg weight and ${h}cm height.
-                                    Constraint 4 (Face): The face identity must be 100% identical to Image 1.
-                                    Background: A generic, clean office environment.` 
+                                // PROMPT YANG JAUH LEBIH SPESIFIK & TEGAS
+                                text: `ACT AS A PROFESSIONAL PHOTOGRAPHER. 
+                                TARGET: Create a NEW image based on these inputs.
+                                IMAGE 1: Reference for the person's face.
+                                IMAGE 2: Reference for the clothes.
+                                
+                                MANDATORY RULES:
+                                1. SHOT TYPE: Full Body Shot (Head to Toe).
+                                2. POSE: The person MUST BE STANDING upright. No sitting, no leaning.
+                                3. CLOTHING: Use the EXACT clothing design from Image 2.
+                                4. BODY TYPE: Adjust body to ${w}kg and ${h}cm.
+                                5. IDENTITY: The face must be EXACTLY like the person in Image 1.
+                                6. OUTPUT: Return only the final generated image.` 
                             },
                             { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                             { inline_data: { mime_type: clothMimeType, data: clothBase64 } }
                         ]
                     }],
-                    safetySettings: [
-                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                    ],
                     generationConfig: {
-                        temperature: 0.9, // Memberikan AI ruang untuk melukis pose berdiri
-                        topP: 1.0,
-                        candidateCount: 1
+                        temperature: 1.0, // Menaikkan kreativitas agar AI mau merubah pose dari duduk ke berdiri
                     }
                 };
 
@@ -162,39 +152,28 @@
                 });
 
                 const data = await res.json();
-                console.log("DEBUG LOG:", data);
 
-                if (data.error) throw new Error(data.error.message);
-
-                const candidates = data.candidates && data.candidates[0];
-                if (!candidates) throw new Error("AI menolak men-generate gambar. Coba ambil foto selfie dari jarak sedikit lebih jauh (setengah badan).");
-
-                const parts = candidates.content.parts;
-                let foundImage = false;
-
-                parts.forEach(part => {
-                    if (part.inline_data) {
-                        resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
+                // LOGIC KRUSIAL: Menangani perbedaan 'inlineData' vs 'inline_data'
+                if (data.candidates && data.candidates[0].content.parts) {
+                    let imagePart = data.candidates[0].content.parts.find(p => p.inlineData || p.inline_data);
+                    
+                    if (imagePart) {
+                        const imgData = imagePart.inlineData || imagePart.inline_data;
+                        resultImage.src = `data:${imgData.mimeType || imgData.mime_type};base64,${imgData.data}`;
                         resultImage.classList.remove('hidden');
                         placeholderText.classList.add('hidden');
-                        foundImage = true;
+                        statusInfo.innerText = "BERHASIL: FULL BODY GENERATED";
+                    } else {
+                        // Jika AI malah balas pakai teks (curhat), kita tampilkan di console
+                        console.error("AI Response Text:", data.candidates[0].content.parts[0].text);
+                        throw new Error("AI memberikan teks, bukan gambar. Coba ganti foto baju.");
                     }
-                });
-
-                if (!foundImage) {
-                    const aiText = parts.find(p => p.text)?.text || "Filter keamanan terpicu.";
-                    throw new Error(aiText);
                 }
-
-                statusInfo.innerText = "GENERASI BERHASIL";
-
             } catch (err) {
-                console.error("GENERATION FAILED:", err);
-                placeholderText.innerText = "GAGAL: " + err.message;
-                statusInfo.innerText = "FAILED";
+                console.error(err);
+                placeholderText.innerText = "ERROR: " + err.message;
             } finally {
                 loader.style.display = "none";
-                captureBtn.disabled = false;
             }
         }
 
