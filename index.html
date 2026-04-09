@@ -128,7 +128,7 @@
                 // NAMA MODEL VALID: "gemini-1.5-flash" 
                 // Prefix "models/" ditambahkan secara internal oleh SDK terbaru, 
                 // namun jika masih gagal 404, kita gunakan string literal ini:
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-flash" });
 
                 const prompt = `
                     System: Kamu adalah AI Fashion Modifikator.
