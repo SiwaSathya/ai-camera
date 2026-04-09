@@ -3,61 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Fit - Gemini 3.1 Image Generation</title>
+    <title>AI Fit v3.1 - Production Ready</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #121212; color: #e0e0e0; font-family: 'Inter', sans-serif; }
-        .gray-panel { background-color: #1c1c1c; border: 1px solid #333; }
-        .input-field { background: #262626; border: 1px solid #444; color: white; border-radius: 8px; padding: 12px; }
-        #video-canvas, #result-image { border-radius: 12px; background: #000; width: 100%; max-width: 450px; border: 2px solid #444; }
+        body { background-color: #0f0f0f; color: #ececec; font-family: 'Inter', sans-serif; }
+        .gray-panel { background-color: #181818; border: 1px solid #2a2a2a; }
+        .input-field { background: #222; border: 1px solid #333; color: white; border-radius: 10px; padding: 12px; transition: 0.2s; }
+        .input-field:focus { border-color: #555; outline: none; background: #2a2a2a; }
+        #video-canvas, #result-image { border-radius: 16px; width: 100%; max-width: 480px; border: 1px solid #333; background: #000; }
         #video-canvas { transform: scaleX(-1); }
-        .btn-primary { background-color: #3f3f46; transition: 0.3s; cursor: pointer; border: 1px solid #52525b; }
-        .btn-primary:hover { background-color: #52525b; }
-        .loader { border: 3px solid #333; border-top: 3px solid #fff; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; }
+        .btn-primary { background: linear-gradient(145deg, #333, #222); border: 1px solid #444; transition: 0.3s; }
+        .btn-primary:hover:not(:disabled) { background: #444; transform: translateY(-1px); border-color: #666; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loader { border: 2px solid #333; border-top: 2px solid #fff; border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-6 md:p-12 flex flex-col items-center">
+<body class="p-4 md:p-10 flex flex-col items-center">
 
     <div class="max-w-6xl w-full">
         <header class="mb-10 text-center">
-            <h1 class="text-3xl font-extrabold text-white tracking-tighter uppercase">AI Visual Transformer 3.1</h1>
-            <p class="text-zinc-500 font-mono text-xs mt-2">Mode: Image Generation Enabled</p>
+            <h1 class="text-3xl font-black tracking-tighter text-white uppercase italic">Visual Transformer v3.1</h1>
+            <p class="text-zinc-600 font-mono text-[10px] mt-2 tracking-[0.2em]">ENGINE: GEMINI-3.1-FLASH-IMAGE-PREVIEW</p>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div class="gray-panel p-8 rounded-3xl shadow-2xl space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="gray-panel p-6 md:p-8 rounded-[2rem] shadow-2xl space-y-6">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="weight" placeholder="Berat (kg)" class="input-field w-full outline-none">
-                    <input type="number" id="height" placeholder="Tinggi (cm)" class="input-field w-full outline-none">
-                </div>
-
-                <input type="file" id="cloth-input" accept="image/*" class="hidden">
-                <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-sm hover:bg-zinc-700 transition font-bold uppercase">Upload Pakaian</button>
-
-                <div class="relative">
-                    <video id="webcam" autoplay playsinline class="hidden"></video>
-                    <canvas id="video-canvas"></canvas>
-                    <div id="freeze-overlay" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
-                        <span class="text-white font-bold text-xs tracking-widest border border-white p-2">CAPTURED</span>
+                    <div class="space-y-1">
+                        <label class="text-[10px] uppercase font-bold text-zinc-500 ml-1">Berat (kg)</label>
+                        <input type="number" id="weight" placeholder="Ex: 70" class="input-field w-full">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] uppercase font-bold text-zinc-500 ml-1">Tinggi (cm)</label>
+                        <input type="number" id="height" placeholder="Ex: 175" class="input-field w-full">
                     </div>
                 </div>
 
-                <button id="capture-btn" class="btn-primary w-full py-4 rounded-2xl font-bold text-white shadow-xl tracking-widest text-sm uppercase">PROSES & GENERATE GAMBAR</button>
-                <center><div class="loader" id="loader"></div></center>
-                <button id="reset-btn" class="hidden w-full text-[10px] text-zinc-500 hover:text-white transition underline mt-2 uppercase">Ambil Ulang Foto</button>
-            </div>
-
-            <div class="gray-panel p-8 rounded-3xl shadow-2xl flex flex-col items-center">
-                <h2 class="text-zinc-500 text-xs font-bold uppercase mb-6 tracking-widest border-b border-zinc-800 pb-3 w-full">Generated Output</h2>
-                
-                <div id="image-container" class="w-full flex flex-col items-center justify-center min-h-[350px] bg-black/40 rounded-2xl border border-zinc-800/50 p-4">
-                    <img id="result-image" class="hidden shadow-2xl" alt="AI Generated Result">
-                    <div id="placeholder-text" class="text-zinc-600 text-sm italic">Hasil gambar akan muncul di sini...</div>
+                <div class="space-y-2">
+                    <input type="file" id="cloth-input" accept="image/*" class="hidden">
+                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-bold hover:bg-zinc-800 transition uppercase tracking-widest">
+                        Upload Target Clothing
+                    </button>
+                    <div id="file-status" class="text-[10px] text-center text-zinc-600 italic">No file selected</div>
                 </div>
 
-                <div id="ai-status-box" class="mt-6 w-full p-4 bg-zinc-900/50 rounded-xl border border-zinc-800 hidden">
-                    <p id="ai-description" class="text-xs text-zinc-400 leading-relaxed"></p>
+                <div class="relative group">
+                    <video id="webcam" autoplay playsinline class="hidden"></video>
+                    <canvas id="video-canvas"></canvas>
+                    <div id="freeze-overlay" class="hidden absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-2xl">
+                        <div class="text-center">
+                            <div class="text-white font-black text-xl tracking-tighter italic">IMAGE CAPTURED</div>
+                            <div class="text-zinc-500 text-[10px] uppercase">Ready to process</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="capture-btn" class="btn-primary w-full py-4 rounded-2xl font-black text-white shadow-xl tracking-[0.3em] text-sm uppercase">
+                    GENERATE IMAGE
+                </button>
+                
+                <div class="flex flex-col items-center gap-3">
+                    <div class="loader" id="loader"></div>
+                    <div id="status-info" class="text-[10px] text-zinc-500 font-mono uppercase tracking-widest">System Ready</div>
+                </div>
+                
+                <button id="reset-btn" class="hidden w-full text-[10px] text-zinc-500 hover:text-white transition underline uppercase font-bold">Retake Photo</button>
+            </div>
+
+            <div class="gray-panel p-6 md:p-8 rounded-[2rem] shadow-2xl flex flex-col">
+                <h2 class="text-zinc-500 text-[10px] font-black uppercase mb-6 tracking-[0.3em] border-b border-zinc-800 pb-4">Processed Result</h2>
+                
+                <div id="image-container" class="w-full flex flex-col items-center justify-center flex-grow bg-black/50 rounded-3xl border border-zinc-800/50 p-4 min-h-[400px]">
+                    <img id="result-image" class="hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]" alt="AI Generated Output">
+                    <div id="placeholder-text" class="text-zinc-700 text-xs font-mono uppercase animate-pulse">Waiting for execution...</div>
+                </div>
+
+                <div id="ai-status-box" class="mt-6 p-4 bg-zinc-900/30 rounded-2xl border border-zinc-800 hidden">
+                    <p id="ai-description" class="text-[11px] text-zinc-400 leading-relaxed font-mono"></p>
                 </div>
             </div>
         </div>
@@ -78,61 +101,57 @@
         const aiDescription = document.getElementById('ai-description');
         const aiStatusBox = document.getElementById('ai-status-box');
         const loader = document.getElementById('loader');
+        const statusInfo = document.getElementById('status-info');
 
         let stream = null;
         let clothBase64 = "";
         let isFrozen = false;
         let animationId = null;
 
-        async function startCamera() {
+        async function init() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
                 video.srcObject = stream;
-                isFrozen = false;
-                resetBtn.classList.add('hidden');
-                document.getElementById('freeze-overlay').classList.add('hidden');
                 video.onloadedmetadata = () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    draw();
+                    tick();
                 };
-            } catch (e) { alert("Kamera error."); }
+            } catch (e) { statusInfo.innerText = "CAMERA ACCESS DENIED"; }
         }
 
-        function stopCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                cancelAnimationFrame(animationId);
-                isFrozen = true;
-                document.getElementById('freeze-overlay').classList.remove('hidden');
-                resetBtn.classList.remove('hidden');
-            }
-        }
-
-        function draw() {
+        function tick() {
             if (!isFrozen) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                animationId = requestAnimationFrame(draw);
+                animationId = requestAnimationFrame(tick);
             }
         }
 
         document.getElementById('cloth-input').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            document.getElementById('file-status').innerText = file.name;
             const reader = new FileReader();
             reader.onload = () => { clothBase64 = reader.result.split(',')[1]; };
-            reader.readAsDataURL(e.target.files[0]);
+            reader.readAsDataURL(file);
         };
 
-        async function processAI() {
+        async function runInference() {
             const w = document.getElementById('weight').value;
             const h = document.getElementById('height').value;
-            if(!w || !h || !clothBase64) return alert("Lengkapi data!");
 
-            const selfieBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-            stopCamera();
+            if(!w || !h || !clothBase64) return alert("Please fill all data and upload clothing image!");
 
+            const selfieBase64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+            
+            // FREEZE UI
+            isFrozen = true;
+            document.getElementById('freeze-overlay').classList.remove('hidden');
+            resetBtn.classList.remove('hidden');
             loader.style.display = "block";
             captureBtn.disabled = true;
-            placeholderText.innerText = "Generating pixels... Mohon tunggu.";
+            placeholderText.innerText = "ANALYZING & GENERATING...";
+            statusInfo.innerText = "COMMUNICATING WITH GEMINI 3.1...";
 
             try {
                 const response = await fetch(API_URL, {
@@ -141,54 +160,70 @@
                     body: JSON.stringify({
                         contents: [{
                             parts: [
-                                { text: `GENERATE_IMAGE: Virtual Try-On. Person in Image 1 wearing clothing from Image 2. User Physique: ${w}kg, ${h}cm. STRICT: Keep face identical. Output must be a new image showing the person wearing the target clothing.` },
+                                { text: `GENERATE_IMAGE: Execute a virtual try-on. Put the clothing from the second image onto the person in the first image. 
+                                User Details: ${w}kg, ${h}cm. 
+                                CRITICAL: Preserve facial features 100%. Output must be the resulting image.` },
                                 { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                                 { inline_data: { mime_type: "image/jpeg", data: clothBase64 } }
                             ]
-                        }],
-                        generationConfig: {
-                            // Menambahkan konfigurasi agar AI tahu kita mengekspektasikan image output
-                            response_mime_type: "application/json" 
-                        }
+                        }]
                     })
                 });
 
                 const data = await response.json();
 
-                // LOGIKA MENANGKAP GAMBAR DARI RESPONSE
+                // MULTI-LAYER ERROR CHECKING
+                if (!data) throw new Error("Empty response from server");
+                if (data.error) throw new Error(data.error.message || "API Internal Error");
+                if (!data.candidates || data.candidates.length === 0) throw new Error("No candidates returned. Possible safety filter block.");
+
                 const parts = data.candidates[0].content.parts;
-                let foundImage = false;
+                let imageFound = false;
 
                 parts.forEach(part => {
                     if (part.inline_data) {
-                        // Jika AI mengembalikan gambar (Base64)
                         resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
                         resultImage.classList.remove('hidden');
                         placeholderText.classList.add('hidden');
-                        foundImage = true;
+                        imageFound = true;
                     } else if (part.text) {
-                        // Jika ada deskripsi teks tambahan
                         aiStatusBox.classList.remove('hidden');
                         aiDescription.innerText = part.text;
                     }
                 });
 
-                if (!foundImage) {
-                    placeholderText.innerText = "AI tidak mengembalikan gambar. Coba ganti foto.";
+                if (!imageFound) {
+                    placeholderText.innerText = "TEXT RECEIVED BUT NO IMAGE GENERATED.";
+                } else {
+                    statusInfo.innerText = "GENERATION SUCCESSFUL";
                 }
 
             } catch (err) {
-                console.error(err);
-                placeholderText.innerText = "Error: " + err.message;
+                console.error("FULL ERROR:", err);
+                // SAFE ERROR DISPLAY
+                const msg = (err && err.message) ? err.message : "An unknown error occurred during fetch";
+                placeholderText.innerText = "ERROR: " + msg.toUpperCase();
+                statusInfo.innerText = "FAILED";
             } finally {
                 loader.style.display = "none";
                 captureBtn.disabled = false;
             }
         }
 
-        resetBtn.onclick = startCamera;
-        captureBtn.onclick = processAI;
-        startCamera();
+        resetBtn.onclick = () => {
+            isFrozen = false;
+            document.getElementById('freeze-overlay').classList.add('hidden');
+            resetBtn.classList.add('hidden');
+            resultImage.classList.add('hidden');
+            placeholderText.classList.remove('hidden');
+            placeholderText.innerText = "Waiting for execution...";
+            aiStatusBox.classList.add('hidden');
+            statusInfo.innerText = "SYSTEM READY";
+            tick();
+        };
+
+        captureBtn.onclick = runInference;
+        init();
     </script>
 </body>
 </html>
