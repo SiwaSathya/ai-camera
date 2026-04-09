@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Virtual Try-On - Stable Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #1a1a1a; color: #d1d1d1; font-family: 'Inter', sans-serif; }
+        .gray-panel { background-color: #242424; border: 1px solid #333; }
+        .input-field { background: #2d2d2d; border: 1px solid #444; color: white; border-radius: 8px; padding: 10px; }
+        #video-canvas { border-radius: 12px; background: #000; width: 100%; max-width: 450px; transform: scaleX(-1); border: 2px solid #3a3a3a; }
+        .btn-primary { background-color: #4a4a4a; transition: 0.3s; }
+        .btn-primary:hover { background-color: #5a5a5a; }
+        .loader { border: 3px solid #333; border-top: 3px solid #999; border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #cloth-preview { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; display: none; margin-top: 10px; border: 1px solid #444; }
+    </style>
+</head>
+<body class="p-6 md:p-12 flex flex-col items-center">
+
+    <div class="max-w-5xl w-full">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-100">AI Visual Transformer</h1>
+            <p class="text-gray-400">Pastikan wajah tetap sama dengan pakaian baru</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="gray-panel p-6 rounded-2xl shadow-xl space-y-5">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Parameter Fisik</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" id="weight" placeholder="Berat (kg)" class="input-field w-full">
+                        <input type="number" id="height" placeholder="Tinggi (cm)" class="input-field w-full">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Foto Baju</label>
+                    <input type="file" id="cloth-input" accept="image/*" class="hidden">
+                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-2 bg-zinc-700 rounded-lg text-sm hover:bg-zinc-600">Pilih Gambar Baju</button>
+                    <center><img id="cloth-preview"></center>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">Selfie</label>
+                    <video id="webcam" autoplay playsinline class="hidden"></video>
+                    <canvas id="video-canvas"></canvas>
+                </div>
+
+                <button id="capture-btn" class="btn-primary w-full py-3 rounded-xl font-bold text-white shadow-lg">PROSES AI</button>
+                <div class="flex justify-center italic text-xs text-gray-500" id="status-info"></div>
+                <center><div class="loader" id="loader"></div></center>
+            </div>
+
+            <div class="gray-panel p-6 rounded-2xl shadow-xl flex flex-col">
+                <h2 class="text-gray-400 text-xs font-bold uppercase mb-4 tracking-tighter">Hasil Analisis & Visualisasi</h2>
+                <div class="flex-grow border-2 border-dashed border-zinc-700 rounded-xl p-4 overflow-y-auto">
+                    <div id="ai-result-text" class="text-sm text-gray-300 leading-relaxed">
+                        Silakan ambil foto dan pilih baju untuk memulai...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Menggunakan spesifik version untuk stabilitas
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai@0.1.0";
+
+        // GANTI DENGAN API KEY ANDA
+        const API_KEY = "AIzaSyBL6s9TRBpKOyCJHgnAmis-dbCln_KABcw"; 
+        const genAI = new GoogleGenerativeAI(API_KEY);
+
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('video-canvas');
+        const clothInput = document.getElementById('cloth-input');
+        const clothPreview = document.getElementById('cloth-preview');
+        const captureBtn = document.getElementById('capture-btn');
+        const loader = document.getElementById('loader');
+        const aiResultText = document.getElementById('ai-result-text');
+        const statusInfo = document.getElementById('status-info');
+        const ctx = canvas.getContext('2d');
+
+        let clothBase64 = "";
+
+        // Kamera Setup
+        async function startWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    tick();
+                };
+            } catch (e) { alert("Akses kamera ditolak."); }
+        }
+
+        function tick() {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            requestAnimationFrame(tick);
+        }
+
+        clothInput.onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                clothBase64 = reader.result.split(',')[1];
+                clothPreview.src = reader.result;
+                clothPreview.style.display = "block";
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+
+        async function runAI() {
+            const w = document.getElementById('weight').value;
+            const h = document.getElementById('height').value;
+
+            if(!w || !h || !clothBase64) return alert("Lengkapi data!");
+
+            loader.style.display = "block";
+            captureBtn.disabled = true;
+            statusInfo.innerText = "Menghubungkan ke Gemini...";
+
+            try {
+                const selfieBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                
+                // NAMA MODEL VALID: "gemini-1.5-flash" 
+                // Prefix "models/" ditambahkan secara internal oleh SDK terbaru, 
+                // namun jika masih gagal 404, kita gunakan string literal ini:
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+                const prompt = `
+                    System: Kamu adalah AI Fashion Modifikator.
+                    User Data: Berat ${w}kg, Tinggi ${h}cm.
+                    Input:
+                    1. Foto Selfie (Orang)
+                    2. Foto Baju (Target)
+
+                    Tugas:
+                    Analisis dan visualisasikan bagaimana orang di foto selfie akan terlihat jika memakai baju tersebut dengan postur tubuh ${w}kg dan ${h}cm.
+                    PENTING: Wajah harus tetap sama (Face Identity Preservation).
+                    Berikan deskripsi hasil transformasi secara detail dan profesional.
+                `;
+
+                const result = await model.generateContent([
+                    prompt,
+                    { inlineData: { data: selfieBase64, mimeType: "image/jpeg" } },
+                    { inlineData: { data: clothBase64, mimeType: "image/jpeg" } }
+                ]);
+
+                const response = await result.response;
+                aiResultText.innerText = response.text();
+                statusInfo.innerText = "Berhasil diproses.";
+
+            } catch (err) {
+                console.error(err);
+                aiResultText.innerHTML = `<span class="text-red-400">Error: ${err.message}</span>`;
+                statusInfo.innerText = "Gagal.";
+            } finally {
+                loader.style.display = "none";
+                captureBtn.disabled = false;
+            }
+        }
+
+        captureBtn.onclick = runAI;
+        startWebcam();
+    </script>
+</body>
+</html>
