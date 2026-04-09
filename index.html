@@ -107,21 +107,37 @@
         async function runAI() {
             const w = document.getElementById('weight').value;
             const h = document.getElementById('height').value;
-            if(!w || !h || !clothBase64) return alert("Lengkapi data!");
+            if(!w || !h || !clothBase64) return alert("Mohon lengkapi data fisik dan upload foto baju!");
 
-            const selfieBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+            // Ambil selfie dengan kualitas rendah untuk referensi wajah saja
+            const selfieBase64 = canvas.toDataURL('image/jpeg', 0.4).split(',')[1];
+            
+            // UI State
             isFrozen = true;
             document.getElementById('freeze-overlay').classList.remove('hidden');
             resetBtn.classList.remove('hidden');
             loader.style.display = "block";
             captureBtn.disabled = true;
-            placeholderText.innerText = "AI SEDANG BERPROSES...";
+            placeholderText.innerText = "MENGHASILKAN GAMBAR BARU...";
+            statusInfo.innerText = "COMMUNICATING WITH GEMINI...";
 
             try {
                 const payload = {
                     contents: [{
                         parts: [
-                            { text: `FASHION TASK: Replace the outfit of the person in IMAGE 1 with the exact garment from IMAGE 2. Adjust fitting for height ${h}cm and weight ${w}kg. Keep face and background identical.` },
+                            { 
+                                // PROMPT TOTAL BARU:
+                                // Kita tidak lagi menyuruh AI 'mengganti', tapi 'membuat ulang'.
+                                text: `TASK: FULL IMAGE GENERATION.
+                                    1. Analyze the face identity of the person in Image 1.
+                                    2. Analyze the clothing design from Image 2.
+                                    3. Generate a NEW HIGH-QUALITY PHOTOREALISTIC IMAGE of the SAME PERSON from Image 1.
+                                    Constraint 1 (Pose): The person MUST BE STANDING upright, fully facing the camera, hands in a natural position (like hands in pockets).
+                                    Constraint 2 (Outfit): The person MUST be wearing the exact clothing design from Image 2.
+                                    Constraint 3 (Physique): The person's body must match ${w}kg weight and ${h}cm height.
+                                    Constraint 4 (Face): The face identity must be 100% identical to Image 1.
+                                    Background: A generic, clean office environment.` 
+                            },
                             { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
                             { inline_data: { mime_type: clothMimeType, data: clothBase64 } }
                         ]
@@ -131,7 +147,12 @@
                         { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
                         { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                    ]
+                    ],
+                    generationConfig: {
+                        temperature: 0.9, // Memberikan AI ruang untuk melukis pose berdiri
+                        topP: 1.0,
+                        candidateCount: 1
+                    }
                 };
 
                 const res = await fetch(PROXY_URL, {
@@ -141,38 +162,36 @@
                 });
 
                 const data = await res.json();
-                console.log("Full Response:", data);
+                console.log("DEBUG LOG:", data);
 
                 if (data.error) throw new Error(data.error.message);
 
-                const candidate = data.candidates && data.candidates[0];
-                if (!candidate) {
-                    const blockReason = data.promptFeedback?.blockReason || "SAFETY_BLOCK";
-                    throw new Error(`Diblokir: ${blockReason}`);
-                }
+                const candidates = data.candidates && data.candidates[0];
+                if (!candidates) throw new Error("AI menolak men-generate gambar. Coba ambil foto selfie dari jarak sedikit lebih jauh (setengah badan).");
 
-                let found = false;
-                candidate.content.parts.forEach(part => {
-                    // Cek 'inlineData' (D Besar) atau 'inline_data'
-                    const img = part.inlineData || part.inline_data;
-                    if (img) {
-                        resultImage.src = `data:${img.mimeType || img.mime_type};base64,${img.data}`;
+                const parts = candidates.content.parts;
+                let foundImage = false;
+
+                parts.forEach(part => {
+                    if (part.inline_data) {
+                        resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
                         resultImage.classList.remove('hidden');
                         placeholderText.classList.add('hidden');
-                        found = true;
-                    } else if (part.text) {
-                        console.log("AI Text Message:", part.text);
+                        foundImage = true;
                     }
                 });
 
-                if (!found) throw new Error("Gagal mengambil data gambar dari AI.");
+                if (!foundImage) {
+                    const aiText = parts.find(p => p.text)?.text || "Filter keamanan terpicu.";
+                    throw new Error(aiText);
+                }
 
-                statusInfo.innerText = "IMAGE GENERATED";
+                statusInfo.innerText = "GENERASI BERHASIL";
 
             } catch (err) {
-                console.error(err);
-                placeholderText.innerText = "Error: " + err.message;
-                statusInfo.innerText = "PROCESS FAILED";
+                console.error("GENERATION FAILED:", err);
+                placeholderText.innerText = "GAGAL: " + err.message;
+                statusInfo.innerText = "FAILED";
             } finally {
                 loader.style.display = "none";
                 captureBtn.disabled = false;
