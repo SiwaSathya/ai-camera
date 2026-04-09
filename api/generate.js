@@ -20,6 +20,7 @@ export default async function handler(req, res) {
     // 2. Ambil API Key dari Environment Variables Vercel (Paling Aman)
     // Jangan hardcode key di sini! Setel di dashboard Vercel.
     const API_KEY = process.env.GEMINI_API_KEY; 
+    console.log(API_KEY)
     const MODEL_ID = "gemini-3.1-flash-image-preview";
     const GOOGLE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${API_KEY}`;
 
