@@ -3,73 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Fit v3.1 - Pure Deploy Ready</title>
+    <title>AI Fit v3.1 - Dynamic MIME</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #121212; color: #ececec; font-family: 'Inter', sans-serif; }
-        .gray-panel { background-color: #1a1a1a; border: 1px solid #2a2a2a; }
-        .input-field { background: #222; border: 1px solid #333; color: white; border-radius: 10px; padding: 10px; }
-        #video-canvas, #result-image { border-radius: 16px; width: 100%; max-width: 480px; border: 1px solid #333; background: #000; }
+        body { background-color: #0d0d0d; color: #f0f0f0; font-family: 'Inter', sans-serif; }
+        .gray-panel { background-color: #161616; border: 1px solid #2a2a2a; }
+        .input-field { background: #1f1f1f; border: 1px solid #333; color: white; border-radius: 12px; padding: 12px; }
+        #video-canvas, #result-image { border-radius: 20px; width: 100%; max-width: 480px; border: 1px solid #333; background: #000; }
         #video-canvas { transform: scaleX(-1); }
-        .btn-primary { background: linear-gradient(145deg, #333, #222); border: 1px solid #444; transition: 0.3s; }
-        .btn-primary:hover:not(:disabled) { background: #444; }
-        .btn-primary:disabled { opacity: 0.5; }
-        .loader { border: 2px solid #333; border-top: 2px solid #fff; border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; display: none; }
+        .btn-primary { background: linear-gradient(to bottom, #333, #111); border: 1px solid #444; transition: 0.3s; cursor: pointer; }
+        .btn-primary:hover:not(:disabled) { border-color: #777; background: #222; }
+        .loader { border: 3px solid #222; border-top: 3px solid #fff; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-6 md:p-10 flex flex-col items-center">
+<body class="p-4 md:p-10 flex flex-col items-center">
 
     <div class="max-w-6xl w-full">
         <header class="mb-10 text-center">
-            <h1 class="text-3xl font-black tracking-tight text-white uppercase italic">Visual Transformer v3.1</h1>
-            <p class="text-zinc-600 font-mono text-[10px] mt-2 tracking-wider">DEPLOY MODE: CORS BYPASS ENABLED</p>
+            <h1 class="text-4xl font-black tracking-tighter text-white uppercase italic">Visual Transformer 3.1</h1>
+            <p class="text-zinc-600 font-mono text-[10px] mt-2 tracking-widest uppercase">Engine: Gemini-3.1-Flash-Image (Dynamic MIME Support)</p>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="gray-panel p-6 rounded-2xl shadow-2xl space-y-5">
-                <div class="grid grid-cols-2 gap-3">
+            <div class="gray-panel p-8 rounded-[2.5rem] shadow-2xl space-y-6">
+                <div class="grid grid-cols-2 gap-4">
                     <input type="number" id="weight" placeholder="Berat (kg)" class="input-field w-full outline-none">
                     <input type="number" id="height" placeholder="Tinggi (cm)" class="input-field w-full outline-none">
                 </div>
 
-                <div>
+                <div class="space-y-3">
                     <input type="file" id="cloth-input" accept="image/*" class="hidden">
-                    <button id="upload-btn" class="w-full py-2 bg-zinc-800 rounded-lg text-xs font-bold hover:bg-zinc-700 transition font-sans uppercase">
-                        Upload Baju (Target)
+                    <button onclick="document.getElementById('cloth-input').click()" class="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs font-bold hover:bg-zinc-800 transition uppercase tracking-widest">
+                        Pilih Gambar Pakaian (Any Format)
                     </button>
-                    <div id="file-status" class="text-[10px] text-center text-zinc-600 italic mt-2">No file selected</div>
+                    <div id="file-status" class="text-[10px] text-center text-zinc-500 italic">Format: PNG/JPG/WebP supported</div>
                 </div>
 
-                <div class="relative">
+                <div class="relative group">
                     <video id="webcam" autoplay playsinline class="hidden"></video>
                     <canvas id="video-canvas"></canvas>
-                    <div id="freeze-overlay" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center rounded-2xl">
-                        <span class="text-white font-bold text-xs tracking-widest border border-white p-2">CAPTURED</span>
+                    <div id="freeze-overlay" class="hidden absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center rounded-2xl">
+                        <span class="text-white font-black text-xs tracking-[0.3em] border-2 border-white px-4 py-2 uppercase">Captured</span>
                     </div>
                 </div>
 
-                <button id="capture-btn" class="btn-primary w-full py-3 rounded-2xl font-black text-white shadow-xl tracking-widest text-sm uppercase">GENERATE LOOK</button>
-                <div class="flex flex-col items-center gap-2">
+                <button id="capture-btn" class="btn-primary w-full py-5 rounded-3xl font-black text-white shadow-2xl tracking-[0.2em] text-sm uppercase">Generate Look</button>
+                
+                <div class="flex flex-col items-center gap-4">
                     <div class="loader" id="loader"></div>
-                    <div id="status-info" class="text-[10px] text-zinc-600 font-mono uppercase tracking-widest"></div>
+                    <div id="status-info" class="text-[10px] text-zinc-600 font-mono uppercase tracking-widest text-center">Ready to process</div>
                 </div>
-                <button id="reset-btn" class="hidden w-full text-[10px] text-zinc-500 hover:text-white transition underline uppercase font-bold mt-2">Retake Photo</button>
+
+                <button id="reset-btn" class="hidden w-full text-xs text-zinc-500 hover:text-white transition underline uppercase font-bold">Ambil Ulang Foto</button>
             </div>
 
-            <div class="gray-panel p-6 rounded-2xl shadow-2xl flex flex-col">
-                <h2 class="text-zinc-500 text-[10px] font-black uppercase mb-6 tracking-widest border-b border-zinc-800 pb-2">Output Preview</h2>
-                <div id="image-container" class="w-full flex-grow flex flex-col items-center justify-center bg-black/50 rounded-2xl p-4 min-h-[350px]">
-                    <img id="result-image" class="hidden" alt="AI Generated Output">
-                    <div id="placeholder-text" class="text-zinc-700 text-xs italic">Waiting for process...</div>
+            <div class="gray-panel p-8 rounded-[2.5rem] shadow-2xl flex flex-col">
+                <h2 class="text-zinc-500 text-[10px] font-black uppercase mb-6 tracking-widest border-b border-zinc-800 pb-4">AI Final Output</h2>
+                <div id="image-container" class="w-full flex-grow flex flex-col items-center justify-center bg-black/40 rounded-[2rem] p-6 border border-zinc-800/50 min-h-[400px]">
+                    <img id="result-image" class="hidden shadow-[0_0_60px_rgba(0,0,0,0.6)]" alt="Hasil AI">
+                    <div id="placeholder-text" class="text-zinc-700 text-xs font-mono uppercase text-center">Menunggu eksekusi...</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // TIDAK BUTUH API KEY DI FRONTEND
-        // URL Fetch sekarang mengarah ke Proxy Internal Vercel
+        // Gunakan proxy Vercel untuk menghindari CORS
         const PROXY_URL = "/api/generate";
 
         const video = document.getElementById('webcam');
@@ -84,37 +84,41 @@
 
         let stream = null;
         let clothBase64 = "";
+        let clothMimeType = ""; // Akan diisi secara otomatis
         let isFrozen = false;
         let animationId = null;
 
-        async function init() {
+        async function initCamera() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
                 video.onloadedmetadata = () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    tick();
+                    render();
                 };
-            } catch (e) { statusInfo.innerText = "CAMERA ACCESS DENIED"; }
+            } catch (e) { statusInfo.innerText = "Akses Kamera Ditolak"; }
         }
 
-        function tick() {
+        function render() {
             if (!isFrozen) {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                animationId = requestAnimationFrame(tick);
+                animationId = requestAnimationFrame(render);
             }
         }
 
-        // Fiks: Logika Pembacaan Gambar Baju
-        document.getElementById('upload-btn').onclick = () => document.getElementById('cloth-input').click();
-
+        // DETEKSI MIME TYPE OTOMATIS
         document.getElementById('cloth-input').onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            document.getElementById('file-status').innerText = file.name;
+
+            clothMimeType = file.type; // Dinamis: image/png, image/jpeg, dll.
+            document.getElementById('file-status').innerText = `File: ${file.name} (${clothMimeType})`;
+            
             const reader = new FileReader();
-            reader.onload = () => { clothBase64 = reader.result.split(',')[1]; };
+            reader.onload = () => {
+                clothBase64 = reader.result.split(',')[1];
+            };
             reader.readAsDataURL(file);
         };
 
@@ -122,34 +126,33 @@
             const w = document.getElementById('weight').value;
             const h = document.getElementById('height').value;
 
-            if(!w || !h || !clothBase64) return alert("Mohon lengkapi data fisik dan upload gambar baju!");
+            if(!w || !h || !clothBase64) return alert("Lengkapi data dan upload gambar baju!");
 
-            // 1. Ambil Selfie & Freeze
             const selfieBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            
+            // UI State
             isFrozen = true;
             document.getElementById('freeze-overlay').classList.remove('hidden');
             resetBtn.classList.remove('hidden');
-
             loader.style.display = "block";
             captureBtn.disabled = true;
-            placeholderText.innerText = "Generatingpixels... Mohon tunggu.";
-            statusInfo.innerText = "Connecting to Proxy Server...";
+            placeholderText.innerText = "AI SEDANG BEKERJA...";
+            statusInfo.innerText = "MENGIRIM DATA KE GEMINI 3.1...";
 
             try {
                 const payload = {
                     contents: [{
                         parts: [
-                            { text: `System Message: Anda adalah AI Fashion Consultant profesional.
-                                     Tugas: Ambil pakaian dari foto kedua dan pasangkan ke tubuh orang di foto pertama.
-                                     Detail Fisik User: Berat ${w}kg, Tinggi ${h}cm.
-                                     ATURAN KRUSIAL: Wajah dan identitas user di foto selfie (foto pertama) TIDAK BOLEH BERUBAH. Output harus berupa gambar baru.` },
+                            { text: `TASK: GENERATE_IMAGE. Virtual Try-On. 
+                                     Target: Put the clothing from image 2 on the person in image 1.
+                                     User Profile: ${w}kg, ${h}cm height.
+                                     Rule: Do NOT change the face. Output must be a new image.` },
                             { inline_data: { mime_type: "image/jpeg", data: selfieBase64 } },
-                            { inline_data: { mime_type: "image/jpeg", data: clothBase64 } }
+                            { inline_data: { mime_type: clothMimeType, data: clothBase64 } }
                         ]
                     }]
                 };
 
-                // 2. Fetch ke Endpoint Proxy Vercel
                 const response = await fetch(PROXY_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -158,30 +161,32 @@
 
                 const data = await response.json();
 
-                // 3. Multi-layer Error Checking
-                if (!data) throw new Error("Empty response dari server");
+                // Safety checks
                 if (data.error) throw new Error(data.error.message);
-                if (!data.candidates || data.candidates.length === 0) throw new Error("Respons kosong. Kemungkinan terblokir filter keamanan Google.");
+                if (!data.candidates || data.candidates.length === 0) throw new Error("Respons kosong. Coba lagi dengan foto yang lebih jelas.");
 
                 const parts = data.candidates[0].content.parts;
-                let foundImage = false;
+                let found = false;
 
                 parts.forEach(part => {
                     if (part.inline_data) {
                         resultImage.src = `data:${part.inline_data.mime_type};base64,${part.inline_data.data}`;
                         resultImage.classList.remove('hidden');
                         placeholderText.classList.add('hidden');
-                        foundImage = true;
+                        found = true;
                     }
                 });
 
-                if (!foundImage) throw new Error("AI memberikan teks tetapi gagal men-generate gambar.");
+                if (!found) {
+                    const msg = parts.find(p => p.text)?.text || "AI menolak men-generate gambar.";
+                    throw new Error(msg);
+                }
 
-                statusInfo.innerText = "BERHASIL";
+                statusInfo.innerText = "BERHASIL!";
 
             } catch (err) {
-                console.error("Fetch Error:", err);
-                placeholderText.innerText = "Error: " + (err.message || "An unknown error occurred");
+                console.error(err);
+                placeholderText.innerText = "ERROR: " + err.message.toUpperCase();
                 statusInfo.innerText = "GAGAL";
             } finally {
                 loader.style.display = "none";
@@ -193,12 +198,15 @@
             isFrozen = false;
             document.getElementById('freeze-overlay').classList.add('hidden');
             resetBtn.classList.add('hidden');
-            statusInfo.innerText = "";
-            tick();
+            resultImage.classList.add('hidden');
+            placeholderText.classList.remove('hidden');
+            placeholderText.innerText = "Menunggu eksekusi...";
+            statusInfo.innerText = "READY";
+            render();
         };
 
         captureBtn.onclick = runAI;
-        init();
+        initCamera();
     </script>
 </body>
 </html>
